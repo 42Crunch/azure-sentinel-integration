@@ -2,7 +2,6 @@ version: '3.4'
 
 services:
     api-firewall:
-        container_name: httpbin-few
         image: 42crunch/secured-httpbin:latest
         restart: on-failure
         ports:
@@ -10,30 +9,34 @@ services:
         expose:
         - 8080
         volumes:
-        - ./storage/apifirewall/logs:/opt/guardian/logs:rw
+        - ../storage/apifirewall/logs:/opt/guardian/logs:rw
         stop_grace_period: 1s
-        command: ["/bin/squire", "-platform", "protection.42crunch.com:8001", "-debug"]
+        command: ["/bin/squire", "-platform", "protection.42crunch.com:8001"]
         environment:
-        - PROTECTION_TOKEN=1234
+        - PROTECTION_TOKEN=NOTUSED
         - LISTEN_NO_TLS=true
         - LISTEN_PORT=8080
         - GUARDIAN_NODE_NAME=Local
-        - LOG_LEVEL=DEBUG
+        - LOG_LEVEL=INFO
         - PLATFORM_CONNECTIVITY=
         - LOG_DESTINATION=FILES
-        - SERVER_NAME=httpbin-secured.42crunch.test
-        - TARGET_URL=http://api:8090/
+        #- SERVER_NAME=httpbin-secured.42crunch.test
+        - SERVER_NAME=localhost
+        - TARGET_URL=http://api:80
         depends_on:
+        - api
+        links:
         - api
     api:
         image: kennethreitz/httpbin
         restart: on-failure
         ports:
-        - 8090:8090
-        expose:
-        - 8090
+        -   target: 80
+            published: 80
+            protocol: tcp
     logsforwarder:
         image: 42crunch/42c-fw-2la:latest
+        restart: on-failure
         build:
             context: .
             dockerfile: ./Dockerfile
@@ -41,7 +44,8 @@ services:
         depends_on:
         - api-firewall
         volumes:
-        - ./storage/apifirewall/logs:/opt/guardian/logs:ro
+        - ../storage/apifirewall/logs:/opt/guardian/logs:ro
+        - ../storage/logs-forwarder-state:/app/.state
         environment:
         - FW2LA_WORKSPACE_ID=${FW2LA_WORKSPACE_ID}
         - FW2LA_WORKSPACE_KEY=${FW2LA_WORKSPACE_KEY}
