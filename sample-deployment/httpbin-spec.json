@@ -1,10 +1,10 @@
 {
   "schemes": [
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "basePath": "/",
-  "host": "httpbin.org",
+  "host": "localhost:8080",
   "info": {
     "contact": {
       "email": "me@kennethreitz.org",
