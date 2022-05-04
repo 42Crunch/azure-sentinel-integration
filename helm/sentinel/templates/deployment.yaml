@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinel.fullname" . }}
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "sentinel.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sentinel.selectorLabels" . | nindent 8 }}
+    spec:  
+      serviceAccountName: {{ include "sentinel.serviceAccountName" . }}   
+      containers:
+      - name: sentinel-logging
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: FW2LA_WORKSPACE_ID
+          value: {{ .Values.sentinel.workspace_id }}
+        - name: FW2LA_WORKSPACE_KEY
+          value: {{ .Values.sentinel.workspace_key }}
+        - name: FW2LA_LOGS_FOLDER
+          value: "/opt/guardian/logs"
+        - name: FW2LA_TICK_INTERVAL
+          value: "10"  
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: firewall-logs
+          mountPath: /opt/guardian/logs
+          readOnly: true
+      terminationGracePeriodSeconds: 30
+      nodeSelector:
+        target: apis
+      volumes:
+      - name: "firewall-logs"
+        persistentVolumeClaim:
+          claimName: apifirewall-logs
