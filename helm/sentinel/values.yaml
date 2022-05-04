@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: 42crunch/42clogs2sentinel
+  repository: 42crunch/42c-fw-2la
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: '0.1'
