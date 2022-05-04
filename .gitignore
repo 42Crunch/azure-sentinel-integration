@@ -1,0 +1,4 @@
+sample-deployment/conf/*
+sample-deployment/Dockerfile
+bin/*
+obj/*
