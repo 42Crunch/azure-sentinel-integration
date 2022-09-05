@@ -18,4 +18,3 @@
     <None Remove="Newtonsoft.Json" />
   </ItemGroup>
 </Project>
-  

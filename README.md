@@ -134,6 +134,7 @@ This assumes the workspace ID and key are set as environment variables and that 
 | FW2LA_LOGS_FOLDER | Path to the `guardian` log files base folder | Application directory ie. `$(pwd)` |
 | FW2LA_STATE_FOLDER | Path to a storage location for application state files (cache) | Application directory + '.state' ie. `$(pwd)/.state` |
 | FW2LA_TICK_INTERVAL | Interval in seconds between processing log files for changes | 10 seconds |
+| FW2LA_TRACE | If defined emits tracel level debugging messages | Undefined |
 
 The log file location must point to the base folder where the logs are written and **must not include** the `GUARDIAN_INSTANCE_NAME` path. For instance in the default configuration (described [here](https://docs.42crunch.com/latest/content/tasks/manage_protection.htm#Switch2)) the path should be set to `/opt/guardian/logs/` (omitting the instance name which will be discovered dynamically).
 

@@ -22,7 +22,6 @@ namespace fwlogs2loganalytics
 
     class Program
     {
-
         private static Dictionary<string, string> environment = new Dictionary<string, string>()
         {
             {"tableName", "apifirewall_log_1"},
@@ -33,6 +32,7 @@ namespace fwlogs2loganalytics
         private static int inTimer = 0;
         private static uint tickInterval = 10;
         private static uint currentTick = 0;
+        private static bool trace = false;
 
         private static LogAnalyticsClient laclient = null;
 
@@ -191,8 +191,6 @@ namespace fwlogs2loganalytics
                     // TODO : Why do we read this if we don't use it ?
                     var json = File.ReadAllText(existingStateFilePath);
                     GuardianState response = JsonConvert.DeserializeObject<GuardianState>(json);
-
-                    Console.WriteLine("Done");
                 }
 
                 guardianStateFiles.Add(existingStateFilePath);
@@ -203,8 +201,7 @@ namespace fwlogs2loganalytics
             if (Interlocked.Exchange(ref inTimer, 1) == 0)
             {
                 // Display the date/time when this method got called.
-
-                 Console.WriteLine("Sentinel publisher OK at tick " + currentTick);
+                logger.LogDebug("42logs2sentinel OK at tick " + currentTick);
 
                 // This is designed to rollover - ignore warnings
                 currentTick = (ushort)(currentTick + 1);
@@ -216,10 +213,6 @@ namespace fwlogs2loganalytics
 
                 Interlocked.Exchange(ref inTimer, 0);
             }
-            else
-
-                    Console.WriteLine("... skipping timer tick");
-
         }
         private static void ProcessLogFile(string stateFile, GuardianLogType logType = GuardianLogType.API_Log)
         {
@@ -242,14 +235,14 @@ namespace fwlogs2loganalytics
             if (gfs.FileSize != ((new System.IO.FileInfo(thisLogFile)).Length) || gfs.LastLineSent == 0)
             {
                 // Read the full file 
-                Console.WriteLine($"Processiong log file -> {thisLogFile}");
+                logger.LogDebug($"Processiong log file -> {thisLogFile}");
 
                 var logLines = File.ReadAllLines(thisLogFile);
 
                 //  The weakness here is we have to read the entire file in one go - might have to change this
                 for (int i = gfs.LastLineSent; i < logLines.Count(); i++)
                 {
-                    Console.WriteLine($"  process {i}");
+                    logger.LogDebug($"  process {i}");
                     var log = JObject.Parse(logLines[i]);
 
                     // Now parse out all the data and post it
@@ -261,7 +254,7 @@ namespace fwlogs2loganalytics
                                             log["date_epoch"].Value<long>(),
                                             log["api"].Value<string>(),
                                             log["api_name"].Value<string>(),
-                                            log["non_blocking_mode"].Value<string>(),
+                                            log["non_blocking_mode"].Value<bool>(),
                                             log["source_ip"].Value<string>(),
                                             log["source_port"].Value<uint>(),
                                             log["destination_ip"].Value<string>(),
@@ -277,7 +270,7 @@ namespace fwlogs2loganalytics
                                             log["errors"].ToString(),
                                             null);
 
-                    Console.WriteLine(ge);
+                    logger.LogDebug(ge.ToString());
 
                     // Send the event now
                     WriteEvent(ge);
@@ -315,7 +308,7 @@ namespace fwlogs2loganalytics
         {
             foreach (var stateFile in stateFiles)
             {
-                Console.WriteLine($"Processing state file -> {stateFile}");
+                logger.LogDebug($"Processing state file -> {stateFile}");
                 ProcessLogFile(stateFile, GuardianLogType.API_Log);
                 ProcessLogFile(stateFile, GuardianLogType.Unknown_Log);
             }
@@ -323,18 +316,28 @@ namespace fwlogs2loganalytics
 
         static async Task<int> Main(string[] args)
         {
-            Console.WriteLine("API Firewall to LogsAnalytics publisher starting");
+            var logLevel = LogLevel.Warning;
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FW2LA_TRACE")))
+            {
+                logLevel = LogLevel.Debug;
+                trace = true;
+                System.Console.WriteLine("Enabled tracing mode");
+            }
 
             using var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .AddFilter("Microsoft", LogLevel.Warning)
-                    .AddFilter("System", LogLevel.Warning)
-                    .AddFilter("NonHostConsoleApp.Program", LogLevel.Warning)
-                    .AddConsole();
-            });
+                        .AddFilter(l => l >= logLevel)
+                        .AddFilter("Microsoft", logLevel)
+                        .AddFilter("System", logLevel)
+                        .AddFilter("NonHostConsoleApp.Program", logLevel)
+                        .AddConsole();
+            }) ;
 
             logger = loggerFactory.CreateLogger<Program>();
+            logger.LogTrace("Enabled tracing mode");
+            logger.LogDebug("42logs2sentinel starting");
 
             if (args.Contains("--help"))
             {
@@ -357,12 +360,12 @@ namespace fwlogs2loganalytics
             {
                 if (!sigintReceived)
                 {
-                    Console.WriteLine("Received SIGTERM");
+                    logger.LogWarning("Received SIGTERM");
                     tcs.SetResult(true);
                 }
                 else
                 {
-                    Console.WriteLine("Received SIGTERM, ignoring it because already processed SIGINT");
+                    logger.LogWarning("Received SIGTERM, ignoring it because already processed SIGINT");
                 }
             };
 
@@ -371,7 +374,7 @@ namespace fwlogs2loganalytics
                 // Tell .NET to not terminate the process
                 ea.Cancel = true;
 
-                Console.WriteLine("Received SIGINT (Ctrl+C)");
+                logger.LogWarning("Received SIGINT (Ctrl+C)");
                 sigintReceived = true;
                 tcs.SetResult(true);
             };
@@ -385,7 +388,8 @@ namespace fwlogs2loganalytics
             await tcs.Task;
             timer.Dispose();
 
-            Console.WriteLine("42logs2sentinel program stopping");
+            logger.LogInformation("42logs2sentinel stopping");
+
             return 0;
         }
 

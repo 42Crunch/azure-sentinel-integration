@@ -63,7 +63,7 @@ namespace fwlogs2loganalytics
 
         public string Tags { get; set; }
 
-        public GuardianEntity(GuardianLogType logType, string UUID, string instance_Name, string node_Name, long timestamp, string API_ID, string API_Name, string non_blocking_mode, string source_IP, uint source_Port, string destination_IP, uint destination_Port, string protocol, string hostname, string URI_Path, string method, uint status, string query = null, string request_Header = null, string response_Header = null, string errors = null, string tags = null)
+        public GuardianEntity(GuardianLogType logType, string UUID, string instance_Name, string node_Name, long timestamp, string API_ID, string API_Name, bool non_blocking_mode, string source_IP, uint source_Port, string destination_IP, uint destination_Port, string protocol, string hostname, string URI_Path, string method, uint status, string query = null, string request_Header = null, string response_Header = null, string errors = null, string tags = null)
         {
             const string NA_STR = "n/a";
             // The epoch we're given is in microseconds
@@ -94,7 +94,7 @@ namespace fwlogs2loganalytics
             this.Timestamp =  dto.UtcDateTime;
             this.API_ID = API_ID;
             this.API_Name = API_Name;
-            this.Non_blocking_mode = non_blocking_mode == "false" ? false : true;
+            this.Non_blocking_mode = non_blocking_mode;
             this.Source_IP = source_IP;
             this.Source_Port = source_Port;
             this.Destination_IP = destination_IP;
@@ -113,7 +113,7 @@ namespace fwlogs2loganalytics
 
         public override string ToString()
         {
-            return $"GuardianEntity() -> UUID: {UUID}, Instance_Name: {Instance_Name}, Node_Name: {Node_Name}, API_ID: {API_ID}, API_Name: {API_Name}, Timestamp: {Timestamp}, Source_IP: {Source_IP}, Destination_IP: {Destination_IP}, Hostname: {Hostname}, URI_Path: {URI_Path}, Method: {Method}, Status: {Status}".ToString();
+            return $"GuardianEntity() -> UUID: {UUID}, Instance_Name: {Instance_Name}, Node_Name: {Node_Name}, API_ID: {API_ID}, API_Name: {API_Name}, Timestamp: {Timestamp}, Source_IP: {Source_IP}, Destination_IP: {Destination_IP}, Hostname: {Hostname}, URI_Path: {URI_Path}, Method: {Method}, Status: {Status}, Non_blocking_mode: {Non_blocking_mode}".ToString();
         }
     }
 }
