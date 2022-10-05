@@ -16,7 +16,7 @@ In order to run the sample, you need to:
 
 1. Export the FW2LA_WORKSPACE_ID env variable: `export FW2LA_WORKSPACE_ID=<your_workspace_id>` 
 
-2. Export the FW2LA_WORKSPACE_KEY env variable: `export FW2LA_WORKSPACE_ID=<your_workspace_key>`
+2. Export the FW2LA_WORKSPACE_KEY env variable: `export FW2LA_WORKSPACE_KEY=<your_workspace_key>`
 
 3. Run the docker compose command: `docker compose up`
 
