@@ -18,7 +18,7 @@ services:
         - LISTEN_PORT=8080
         - GUARDIAN_NODE_NAME=Local
         - LOG_LEVEL=INFO
-        - PLATFORM_CONNECTIVITY=
+        - PLATFORM_CONNECTIVITY=NONE
         - LOG_DESTINATION=FILES
         #- SERVER_NAME=httpbin-secured.42crunch.test
         - SERVER_NAME=localhost
@@ -37,10 +37,10 @@ services:
     logsforwarder:
         image: 42crunch/42c-fw-2la:latest
         restart: on-failure
-        build:
-            context: .
-            dockerfile: ./Dockerfile
-        command: [""]
+        # build:
+        #     context: .
+        #     dockerfile: ./Dockerfile
+        # command: [""]
         depends_on:
         - api-firewall
         volumes:
